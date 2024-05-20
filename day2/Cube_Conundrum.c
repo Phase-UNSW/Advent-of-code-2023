@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #define MAX 256
 #define GAMECOUNT 100
 #define TRUE 1
@@ -28,49 +29,78 @@ int main(int argc, char const *argv[])
     }
         
     struct game games[GAMECOUNT];
-    for (int i = 0; i <100; i++) {
+    for (int i = 0; i < 100; i++) {
+        printf("%d", i);
+        games[i].maxRed = 0;
+        games[i].maxBlue = 0;
+        games[i].maxGreen = 0;
         sum += inputParser (file, games, i);
     }
 
-
-     return 0;
+    printf("%d", sum);
+    fclose(file);
+    return 0;
 }
 
 int inputParser (FILE *file, struct game games[GAMECOUNT], int game) {
-    char *line[MAX];
-    int currentPos = 0;
+       char line[MAX];
     char segment[MAX];
-    char splitter = ';'; 
-    memset(line, '\0', sizeof(line));
-    fgets(line, sizeof(line), file);
-    char *ret = line; 
-    while (ret != NULL) {
-        ret = memchr(line, splitter, sizeof(line));
-        int pos = strlen(ret);
-        memcpy(segment, line, pos);
-        char *red = "red";
-        char *blue = "blue";
-        char *green = "green";
-        int blueCount = segmentNumber (blue, segment);
-        int redCount = segmentNumber (red, segment);
-        int greenCount = segmentNumber (green, segment);
+    char splitter = ';';
+    if (fgets(line, MAX, file) == NULL) {
+        return 0;
+    }
+    
+    char *currentPos = line;
+    char *ret = NULL;
+    int blueCount;
+    int greenCount;
+    int redCount;
+    const char *red = "red";
+    const char *blue = "blue";
+    const char *green = "green";
+
+    while ((ret = strchr(currentPos, splitter)) != NULL) {
+        int pos = ret - currentPos;
+        memcpy(segment, currentPos, pos * sizeof(char));
+        segment[pos] = '\0';  // Null-terminate the segment
+
+        blueCount = segmentNumber(blue, segment);
+        redCount = segmentNumber(red, segment);
+        greenCount = segmentNumber(green, segment);
+
         if (games[game].maxRed < redCount) {
             games[game].maxRed = redCount; 
         }
         if (games[game].maxBlue < blueCount) {
             games[game].maxBlue = blueCount;
         }
-        if (games[game].maxGreen < greenCount)
+        if (games[game].maxGreen < greenCount) {
             games[game].maxGreen = greenCount; 
+        }
+        currentPos = ret + 1;
+    }
+    // Handle the last segment after the last splitter
+    if (*currentPos != '\0') {
+        strcpy(segment, currentPos);
+        segmentNumber(blue, segment);
+        blueCount = segmentNumber(blue, segment);
+        redCount = segmentNumber(red, segment);
+        greenCount = segmentNumber(green, segment);
+
+        if (games[game].maxRed < redCount) {
+            games[game].maxRed = redCount; 
+        }
+        if (games[game].maxBlue < blueCount) {
+            games[game].maxBlue = blueCount;
+        }
+        if (games[game].maxGreen < greenCount) {
+            games[game].maxGreen = greenCount; 
+        }
     }
     if (games[game].maxRed > MAXRED || games[game].maxBlue > MAXBLUE || games[game].maxGreen > MAXGREEN) {
         return 0;
     }
-    return 1;
-
-}
-
-
+    return game;}
 
 int segmentNumber (char* colour, char* segment) {
     char* pos = strstr(segment, colour);
@@ -84,10 +114,17 @@ int segmentNumber (char* colour, char* segment) {
         pos--;
         len++;
     }
+
     pos++;
-    char *newDigit;
-    memcpy(newDigit, pos, len);
-    return atoi(newDigit);
+    char *newDigit = malloc(sizeof(char)*len);
+    memcpy(newDigit, pos, len*sizeof(char));
+    newDigit[len] = '\0';
+    printf("%s %s\n", newDigit, colour);
+    int result = atoi(newDigit);
+    free(newDigit);
+    printf("%d\n", result);
+
+    return result;
 }
 
 
