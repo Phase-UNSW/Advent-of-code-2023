@@ -49,7 +49,6 @@ int main(int argc, char *argv[]) {
             ptr++;
             for (int j = 0; j < Numbers; j++) {
                 sscanf(ptr, "%2d", &numbers[j]);
-                printf("%d\n", numbers[j]);
                 ptr = ptr+3;
               }
         sum += DeterminePoints(numbers, winners);
